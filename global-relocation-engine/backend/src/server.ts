@@ -23,13 +23,7 @@ const PORT = process.env['PORT'] || 3000;
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
-// Serve static frontend
-// Note: 'public' is now two levels up from 'src' if we are in 'src/server.ts'
-// But during development with ts-node, it's relative to 'src'.
-// In production 'dist/server.js', it's relative to 'dist'.
-// Better to use path.resolve relative to project root.
-const projectRoot = path.resolve(__dirname, '..');
-app.use(express.static(path.join(projectRoot, 'public')));
+
 
 // API Routes
 app.post('/api/analyze', analyzeHandler as any);
@@ -50,10 +44,7 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', uptime: process.uptime() });
 });
 
-// Catch-all: serve frontend for any non-API route
-app.get('*', (req, res) => {
-    res.sendFile(path.join(projectRoot, 'public', 'index.html'));
-});
+
 
 // Start server
 app.listen(PORT, () => {
