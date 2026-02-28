@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import Lenis from 'lenis';
 import { LoadingScreen } from './components/LoadingScreen';
 
 // Create a React-friendly reference to the Web Component
@@ -11,13 +12,40 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onStartJourney }) => {
   const [isLoading, setIsLoading] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
+    });
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+    return () => lenis.destroy();
+  }, []);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"]
+  });
+
+  const heroY = useTransform(scrollYProgress, [0, 0.2], [0, 250]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
 
   return (
     <>
       <AnimatePresence>
         {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
       </AnimatePresence>
-      <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased selection:bg-primary selection:text-background-dark overflow-x-hidden">
+      <div ref={containerRef} className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased selection:bg-primary selection:text-background-dark overflow-x-hidden">
       <nav className="fixed top-0 left-0 w-full z-50 border-b border-white/5 bg-background-dark/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -55,7 +83,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartJourney }) => {
           <div className="absolute inset-0 bg-background-dark/20 z-10 pointer-events-none"></div>
         </div>
 
-        <div className="relative z-30 container mx-auto px-6 text-center flex flex-col items-center gap-8 pointer-events-none">
+        <motion.div 
+          style={{ y: heroY, opacity: heroOpacity }}
+          className="relative z-30 container mx-auto px-6 text-center flex flex-col items-center gap-8 pointer-events-none"
+        >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-black/40 backdrop-blur-xl mb-4 animate-fade-up neon-badge pointer-events-auto">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#00f0ff]"></span>
             <span className="text-xs font-medium tracking-widest text-primary uppercase shadow-primary drop-shadow-[0_0_5px_rgba(0,240,255,0.5)]">System Online v2.4</span>
@@ -84,7 +115,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartJourney }) => {
               </span>
             </button>
           </div>
-        </div>
+        </motion.div>
 
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce opacity-80 z-30 pointer-events-none">
           <span className="text-[10px] uppercase tracking-[0.2em] text-primary drop-shadow-[0_0_5px_rgba(0,240,255,0.8)]">Scroll to Explore</span>
@@ -108,18 +139,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartJourney }) => {
                 Navigate the complexities of global climate. Our engine processes terabytes of atmospheric data to predict stability, air quality, and seasonal shifts before you arrive.
               </p>
               <div className="flex flex-col gap-4 mt-4">
-                <div className="flex items-center gap-4 text-slate-300 p-3 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-white/10">
+                <motion.div 
+                  initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.2 }}
+                  className="flex items-center gap-4 text-slate-300 p-3 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
+                >
                   <span className="material-symbols-outlined text-primary drop-shadow-[0_0_5px_rgba(0,240,255,0.8)]">eco</span>
                   <span className="font-mono text-sm">AQI Forecasting Model</span>
-                </div>
-                <div className="flex items-center gap-4 text-slate-300 p-3 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-white/10">
+                </motion.div>
+                <motion.div 
+                  initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.4 }}
+                  className="flex items-center gap-4 text-slate-300 p-3 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
+                >
                   <span className="material-symbols-outlined text-primary drop-shadow-[0_0_5px_rgba(0,240,255,0.8)]">water_drop</span>
                   <span className="font-mono text-sm">Water Security Index</span>
-                </div>
+                </motion.div>
               </div>
             </div>
 
-            <div className="relative h-[600px] w-full rounded-2xl overflow-hidden group perspective-1000 scroll-reveal delay-200">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1.2, ease: "easeOut" }}
+              className="relative h-[600px] w-full rounded-2xl overflow-hidden group perspective-1000 delay-200"
+            >
               <div className="absolute inset-0 bg-background-dark">
                 <img alt="Volumetric foggy mountain landscape" className="absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105 group-hover:blur-sm opacity-80 mix-blend-luminosity hover:mix-blend-normal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCz7QOhT91lBoQdPBXxhA32-5k8Di1tEUntxV3n_yf1lu_3xcARqavdFaHKLm7GezVm_BwgLIk7vLDGAin5rwpY4VN6LnqWwdZ-1Pm3t-Y847excQV1T1qpd8U83zs4YZPKtW1rqSlgUYtDO6h0IC-Szi9nlKDHUTKOp958lI48AZSHyZ4P8WoVUH_Rpqzdu57RaQI70FCAlbnLctaU-EqoybciGGEzDvET8Y5rqsQBeL14VH4JCoGRJdrYybwb1RGZ9TwRoNyjNOE" />
                 <div className="absolute inset-0 bg-gradient-to-t from-background-dark via-primary/5 to-transparent mix-blend-overlay"></div>
@@ -136,7 +176,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartJourney }) => {
                   <div className="bg-gradient-to-r from-primary to-accent-blue h-1 rounded-full w-[98%] shadow-[0_0_15px_rgba(0,240,255,0.8)] animate-[pulse_2s_infinite]"></div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -144,7 +184,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartJourney }) => {
       <section className="relative py-32 bg-surface-dark border-t border-white/5">
         <div className="container mx-auto px-6 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="relative h-[600px] w-full rounded-2xl overflow-hidden group order-2 lg:order-1 perspective-1000 scroll-reveal">
+            <motion.div 
+              initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1, ease: "easeOut" }}
+              className="relative h-[600px] w-full rounded-2xl overflow-hidden group order-2 lg:order-1 perspective-1000"
+            >
               <div className="absolute inset-0 bg-background-dark">
                 <img alt="Futuristic cityscape 3D render" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70 hue-rotate-15 contrast-125" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALp8OndqDguD7Nhr68GnwkvySLkquWm9oNCIMXPGu-j0wmOS5QcfigfXZ40zs2y219_MnnQWDIVx7mHKlZCnWDGqKpqNicMZf9M4GDOCLX2Qc103AIdbghM0JZBqtWAvxGP2rjFluOVdkp2fgNLgRgZfMvfTloG9y6jiNvEGlmsDbS3mdz5sHiffmoFaRHNbPVtHG2LYwynStLqLY8OFy2QBH6RxuM_9M_TVIsKjEA_N1CG-h8PIL0xZYhcjkRMA-dbBeJOWfKYWo" />
                 <div className="absolute inset-0 bg-gradient-to-tr from-secondary/20 to-primary/10 mix-blend-color-dodge"></div>
@@ -155,7 +198,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartJourney }) => {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border border-white/10 rounded-full flex items-center justify-center backdrop-blur-sm">
                 <span className="text-xs text-primary font-mono animate-pulse">Scanning...</span>
               </div>
-            </div>
+            </motion.div>
             
             <div className="flex flex-col gap-8 order-1 lg:order-2 scroll-reveal delay-200">
               <span className="text-primary text-sm font-mono tracking-widest uppercase border-l-2 border-primary pl-4 shadow-[0_0_10px_rgba(0,240,255,0.2)]">02. Infrastructure Grade</span>
@@ -192,9 +235,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartJourney }) => {
             <div className="h-1 w-24 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto"></div>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="group relative h-[450px] rounded-2xl overflow-hidden neon-card border border-white/5 bg-glass-neon transition-all duration-500 scroll-reveal delay-100">
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.8, delay: 0.1 }}
+              className="group relative h-[450px] rounded-2xl overflow-hidden neon-card border border-white/5 bg-glass-neon transition-all duration-500"
+            >
               <div 
-                className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-50 transition-opacity duration-500 mix-blend-overlay"
+                className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-50 transition-opacity duration-500 mix-blend-overlay scale-110 group-hover:scale-100 transition-transform"
                 style={{ backgroundImage: "url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop')" }}
               ></div>
               <div className="relative h-full p-8 flex flex-col justify-end z-10">
@@ -211,11 +257,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartJourney }) => {
                   <div className="absolute inset-0 bg-primary w-0 group-hover:w-full transition-all duration-700 ease-out"></div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="group relative h-[450px] rounded-2xl overflow-hidden neon-card border border-white/5 bg-glass-neon transition-all duration-500 scroll-reveal delay-300">
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.8, delay: 0.3 }}
+              className="group relative h-[450px] rounded-2xl overflow-hidden neon-card border border-white/5 bg-glass-neon transition-all duration-500"
+            >
               <div 
-                className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-50 transition-opacity duration-500 mix-blend-overlay"
+                className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-50 transition-opacity duration-500 mix-blend-overlay scale-110 group-hover:scale-100 transition-transform"
                 style={{ backgroundImage: "url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=2070&auto=format&fit=crop')" }}
               ></div>
               <div className="relative h-full p-8 flex flex-col justify-end z-10">
@@ -232,11 +281,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartJourney }) => {
                   <div className="absolute inset-0 bg-primary w-0 group-hover:w-full transition-all duration-700 ease-out"></div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="group relative h-[450px] rounded-2xl overflow-hidden neon-card border border-white/5 bg-glass-neon transition-all duration-500 scroll-reveal delay-500">
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.8, delay: 0.5 }}
+              className="group relative h-[450px] rounded-2xl overflow-hidden neon-card border border-white/5 bg-glass-neon transition-all duration-500"
+            >
               <div 
-                className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-50 transition-opacity duration-500 mix-blend-overlay"
+                className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-50 transition-opacity duration-500 mix-blend-overlay scale-110 group-hover:scale-100 transition-transform"
                 style={{ backgroundImage: "url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=2144&auto=format&fit=crop')" }}
               ></div>
               <div className="relative h-full p-8 flex flex-col justify-end z-10">
@@ -253,7 +305,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartJourney }) => {
                   <div className="absolute inset-0 bg-primary w-0 group-hover:w-full transition-all duration-700 ease-out"></div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
