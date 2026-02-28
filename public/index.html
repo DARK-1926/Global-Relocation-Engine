@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="Global Relocation & Travel Decision Intelligence Engine — compare countries for relocation and travel using real-time data, AI scoring, and dynamic ranking.">
+  <title>Global Relocation Intelligence Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <!-- Animated Background -->
+  <div class="bg-gradient"></div>
+  <div class="bg-particles" id="particles"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">🌍</div>
+      <div>
+        <h1>RelocateIQ</h1>
+        <p class="tagline">Global Decision Intelligence Engine</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Input Section -->
+    <section class="input-section glass-card" id="inputSection">
+      <h2 class="section-title">
+        <span class="title-icon">📊</span>
+        Analyze Destinations
+      </h2>
+      <p class="section-desc">Enter one or more countries to receive an AI-powered comparative analysis.</p>
+
+      <!-- Traveler Personas -->
+      <div class="persona-selection">
+        <span class="persona-label">Quick Presets:</span>
+        <div class="persona-chips">
+          <button type="button" class="persona-chip" data-persona="nomad">💻 Digital Nomad</button>
+          <button type="button" class="persona-chip" data-persona="retiree">🏡 Retiree</button>
+          <button type="button" class="persona-chip" data-persona="adventure">🌋 Adventurer</button>
+          <button type="button" class="persona-chip" data-persona="business">💼 Business</button>
+        </div>
+      </div>
+
+      <form id="analyzeForm" autocomplete="off">
+        <!-- Countries Input -->
+        <div class="form-group">
+          <label for="countryInput">Countries</label>
+          <div class="chips-container" id="chipsContainer">
+            <div class="chips-list" id="chipsList"></div>
+            <input type="text" id="countryInput" placeholder="Type a country and press Enter..." class="chip-input">
+            <div class="autocomplete-list" id="autocompleteList" style="display:none;"></div>
+          </div>
+          <span class="helper-text" id="countryHelper">Add at least 1 country</span>
+        </div>
+
+        <!-- Options Row -->
+        <div class="options-row">
+          <div class="form-group">
+            <label for="riskTolerance">Risk Tolerance</label>
+            <div class="select-wrapper">
+              <select id="riskTolerance">
+                <option value="low">🛡️ Low — Safety First</option>
+                <option value="moderate" selected>⚖️ Moderate — Balanced</option>
+                <option value="high">🚀 High — Adventurous</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="duration">Duration of Stay</label>
+            <div class="select-wrapper">
+              <select id="duration">
+                <option value="short-term" selected>📅 Short-term</option>
+                <option value="long-term">🏡 Long-term</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn-analyze" id="btnAnalyze" disabled>
+          <span class="btn-text">Analyze Destinations</span>
+          <span class="btn-loading" style="display:none;">
+            <span class="spinner"></span>
+            Analyzing...
+          </span>
+        </button>
+      </form>
+    </section>
+
+    <!-- Error Display -->
+    <div class="error-banner" id="errorBanner" style="display:none;">
+      <span class="error-icon">⚠️</span>
+      <span class="error-message" id="errorMessage"></span>
+    </div>
+
+    <!-- Results Section -->
+    <section class="results-section" id="resultsSection" style="display:none;">
+      <!-- Results Header -->
+      <div class="results-header glass-card">
+        <h2 class="section-title">
+          <span class="title-icon">🏆</span>
+          Rankings
+        </h2>
+        <div class="results-meta" id="resultsMeta"></div>
+      </div>
+
+      <!-- Weight Profile -->
+      <div class="weight-profile glass-card" id="weightProfile"></div>
+
+      <!-- Failed Countries Banner -->
+      <div class="failed-banner" id="failedBanner" style="display:none;"></div>
+
+      <!-- Backend Activity Log -->
+      <div class="activity-log glass-card" id="activityLog" style="display:none;">
+        <div class="activity-header" id="activityToggle">
+          <h3>
+            <span class="title-icon">🖥️</span>
+            Backend Activity Log
+          </h3>
+          <span class="activity-toggle-icon" id="activityToggleIcon">▼</span>
+        </div>
+        <div class="activity-body" id="activityBody">
+          <div class="activity-events" id="activityEvents"></div>
+        </div>
+      </div>
+
+      <!-- Country Cards -->
+      <div class="cards-grid" id="cardsGrid"></div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>Powered by REST Countries, Open-Meteo Weather & Air Quality APIs</p>
+    <p class="footer-sub">Real-time data · No mock data · Intelligent scoring</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
