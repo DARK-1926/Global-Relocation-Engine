@@ -517,9 +517,9 @@
     const radius = 60;
 
     // Normalize scores to 0-1 (inverse travel risk)
-    const s1 = (100 - (c.scores.travelRisk || 100)) / 100; // Safety
-    const s2 = (c.scores.healthInfra || 0) / 100;
-    const s3 = (c.scores.envStability || 0) / 100;
+    const s1 = (100 - (c.scores.travelRisk.score || 100)) / 100; // Safety
+    const s2 = (c.scores.healthInfra.score || 0) / 100;
+    const s3 = (c.scores.envStability.score || 0) / 100;
 
     // Triangle Coordinates
     const points = [

@@ -38,6 +38,8 @@ export interface RankedCountry {
     region: string;
     population: number;
     currencies: any[];
+    latlng: [number, number];
+    cca3: string;
     compositeScore: number | null;
     scores: {
         travelRisk: TravelRiskResult;
@@ -260,6 +262,8 @@ export function rankCountries(countriesData: CountryEntry[], riskTolerance: stri
             region: entry.country?.region || 'Unknown',
             population: entry.country?.population || 0,
             currencies: entry.country?.currencies || [],
+            latlng: entry.country?.latlng || [0, 0],
+            cca3: entry.country?.cca3 || '',
             compositeScore: entry.compositeScore,
             scores: {
                 travelRisk: entry.scores.travelRisk,
