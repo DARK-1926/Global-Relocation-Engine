@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CountrySelector } from './components/CountrySelector'; 
 import { PreferencesForm } from './components/PreferencesForm';
@@ -7,8 +8,10 @@ import { Search, Loader2, ArrowLeft } from 'lucide-react';
 import { analyzeCountries } from './services/api';
 import type { AnalysisResponse, AnalysisRequest } from './types';
 import { ResultsDisplay } from './components/ResultsDisplay';
+import { LandingPage } from './LandingPage';
 
 function App() {
+  const navigate = useNavigate();
   const [countries, setCountries] = useState<string[]>([]);
   const [riskTolerance, setRiskTolerance] = useState<RiskLevel>('Moderate');
   const [duration, setDuration] = useState<DurationLevel>('Short-term');
@@ -43,8 +46,11 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 relative overflow-x-hidden selection:bg-blue-500/30">
-      <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-900/20 blur-[120px] pointer-events-none" />
+    <Routes>
+      <Route path="/" element={<LandingPage onStartJourney={() => navigate('/dashboard')} />} />
+      <Route path="/dashboard" element={
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }} className="min-h-screen bg-slate-950 relative overflow-x-hidden selection:bg-blue-500/30">
+          <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-900/20 blur-[120px] pointer-events-none" />
       <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-900/10 blur-[100px] pointer-events-none" />
 
       <main className="container mx-auto px-4 py-16 flex flex-col items-center">
@@ -129,8 +135,10 @@ function App() {
           </motion.div>
         )}
 
-      </main>
-    </div>
+          </main>
+        </motion.div>
+      } />
+    </Routes>
   );
 }
 

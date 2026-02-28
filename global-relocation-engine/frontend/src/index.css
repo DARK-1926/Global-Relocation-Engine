@@ -2,23 +2,69 @@
 @import "tailwindcss/preflight" layer(base);
 @import "tailwindcss/utilities" layer(utilities);
 
-@layer theme {
-  :root {
-    --color-primary-50: #eff6ff;
-    --color-primary-100: #dbeafe;
-    --color-primary-200: #bfdbfe;
-    --color-primary-300: #93c5fd;
-    --color-primary-400: #60a5fa;
-    --color-primary-500: #3b82f6;
-    --color-primary-600: #2563eb;
-    --color-primary-700: #1d4ed8;
-    --color-primary-800: #1e40af;
-    --color-primary-900: #1e3a8a;
+@theme {
+  --color-primary: #00f0ff;
+  --color-secondary: #7000ff;
+  --color-background-light: #f6f7f8;
+  --color-background-dark: #050a10;
+  --color-surface-dark: #0f161e;
+  --color-accent-blue: #137fec;
 
-    --color-background: #0b0f19;
-    --color-surface: #151b2b;
-    --color-surface-hover: #1e293b;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-serif: "Playfair Display", serif;
+
+  --background-image-hero-gradient: linear-gradient(to bottom, rgba(5, 10, 16, 0.3), rgba(5, 10, 16, 1));
+  --background-image-glass: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  --background-image-glass-neon: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(0,240,255,0.05) 50%, rgba(112,0,255,0.05) 100%);
+
+  --animate-spin-slow: spin 20s linear infinite;
+  --animate-spin-slower: spin 30s linear infinite;
+  --animate-spin-reverse: spin-reverse 25s linear infinite;
+  --animate-pulse-glow: pulse-glow 4s ease-in-out infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-orbit: orbit 15s linear infinite;
+  --animate-orbit-reverse: orbit-reverse 20s linear infinite;
+
+  @keyframes spin-reverse {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(-360deg); }
   }
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.1); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+  @keyframes fade-up {
+    0% { opacity: 0; transform: translateY(30px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes orbit {
+    0% { transform: rotate(0deg) translateX(150px) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(150px) rotate(-360deg); }
+  }
+  @keyframes orbit-reverse {
+    0% { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
+    100% { transform: rotate(0deg) translateX(120px) rotate(0deg); }
+  }
+
+  /* Maintaining old colors just in case the results dashboard requires them */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-background: #0b0f19;
+  --color-surface: #151b2b;
+  --color-surface-hover: #1e293b;
 }
 
 body {
@@ -33,12 +79,60 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.glass {
-  background: rgba(21, 27, 43, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+@layer utilities {
+  .glass {
+    background: rgba(21, 27, 43, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  }
+  .glass-card {
+    background: rgba(15, 22, 30, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  }
+  .text-glow {
+    text-shadow: 0 0 20px rgba(0, 240, 255, 0.5), 0 0 40px rgba(112, 0, 255, 0.3);
+  }
+  .glass-sphere {
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.01) 40%, transparent 80%);
+    box-shadow: inset -10px -10px 20px rgba(0, 0, 0, 0.5), 
+                inset 10px 10px 20px rgba(255, 255, 255, 0.1),
+                0 0 50px rgba(0, 240, 255, 0.1);
+    backdrop-filter: blur(3px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .glass-text-overlay {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  }
+  .neon-card:hover {
+    background: linear-gradient(135deg, rgba(15, 22, 30, 0.8) 0%, rgba(0, 240, 255, 0.1) 100%);
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+    border-color: rgba(0, 240, 255, 0.3);
+  }
+  .neon-badge {
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3), inset 0 0 5px rgba(0, 240, 255, 0.1);
+  }
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-500 { animation-delay: 500ms; }
+  .delay-700 { animation-delay: 700ms; }
+  .perspective-1000 { perspective: 1000px; }
+  .transform-style-3d { transform-style: preserve-3d; }
+  .scroll-reveal {
+    opacity: 0;
+    animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-timeline: view();
+    animation-range: entry 10% cover 30%;
+  }
 }
 
 /* Custom scrollbar for dark theme */
