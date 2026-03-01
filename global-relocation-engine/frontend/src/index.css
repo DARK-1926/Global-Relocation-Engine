@@ -150,3 +150,16 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  body, .bg-background-dark, #root {
+    background-color: var(--color-background-dark) !important;
+  }
+}
+

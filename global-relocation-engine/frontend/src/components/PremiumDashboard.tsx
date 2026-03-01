@@ -4,19 +4,22 @@ import type { AnalysisResponse } from '../types';
 import { analyzeCountries } from '../services/api';
 import { PremiumResultsDisplay } from './PremiumResultsDisplay';
 import Spline from '@splinetool/react-spline';
+import { useNavigate } from 'react-router-dom';
 
 export const PremiumDashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const [activePreset, setActivePreset] = useState<string | null>(null);
   const [countries, setCountries] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [allCountries, setAllCountries] = useState<any[]>([]);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
-  
+
   const [riskTolerance, setRiskTolerance] = useState('Moderate');
   const [duration, setDuration] = useState('Short-term');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<AnalysisResponse | null>(null);
-  
+
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<HTMLDivElement>(null);
 
@@ -40,7 +43,7 @@ export const PremiumDashboard: React.FC = () => {
 
     const handleClickOutside = (e: MouseEvent) => {
       if (
-        autocompleteRef.current && 
+        autocompleteRef.current &&
         !autocompleteRef.current.contains(e.target as Node) &&
         inputRef.current &&
         !inputRef.current.contains(e.target as Node)
@@ -55,20 +58,40 @@ export const PremiumDashboard: React.FC = () => {
   const getFilteredCountries = () => {
     const val = inputValue.trim().toLowerCase();
     if (val.length < 2) return [];
-    
+
     // Exact match override to prevent minor islands from overtaking the main USA
     if (val === 'united states' || val === 'usa' || val === 'us') {
       const usa = allCountries.find(c => c.cca3 === 'USA');
       if (usa) return [usa];
     }
-    
-    return allCountries.filter(c => 
-      c.name.toLowerCase().includes(val) || 
-      c.cca3.toLowerCase() === val || 
+    if (val === 'uk' || val === 'united kingdom') {
+      const uk = allCountries.find(c => c.cca3 === 'GBR');
+      if (uk) return [uk];
+    }
+
+    // Filter all matches first
+    const matches = allCountries.filter(c =>
+      c.name.toLowerCase().includes(val) ||
+      c.cca3.toLowerCase() === val ||
       c.cca2?.toLowerCase() === val
-    ).slice(0, 8);
+    );
+
+    // Sort to bubble exact start matches and exact name matches to the top
+    matches.sort((a, b) => {
+      const aName = a.name.toLowerCase();
+      const bName = b.name.toLowerCase();
+
+      if (aName === val) return -1;
+      if (bName === val) return 1;
+      if (aName.startsWith(val) && !bName.startsWith(val)) return -1;
+      if (!aName.startsWith(val) && bName.startsWith(val)) return 1;
+
+      return aName.localeCompare(bName);
+    });
+
+    return matches.slice(0, 8);
   };
-  
+
   const filteredCountries = getFilteredCountries();
 
   // Focus input anywhere on the wrapper
@@ -93,7 +116,7 @@ export const PremiumDashboard: React.FC = () => {
   const handleAddCountry = (name: string) => {
     const val = name.trim().replace(/,/g, '');
     const isDuplicate = countries.some(c => c.toLowerCase() === val.toLowerCase());
-    
+
     if (isDuplicate) {
       setError(`"${val}" has already been added.`);
       setInputValue('');
@@ -122,7 +145,7 @@ export const PremiumDashboard: React.FC = () => {
       setError('Please enter at least 1 country to analyze.');
       return;
     }
-    
+
     setError(null);
     setIsLoading(true);
 
@@ -160,7 +183,13 @@ export const PremiumDashboard: React.FC = () => {
             </span>
           </div>
           <div className="flex items-center gap-6">
-            <button className="text-sm font-bold text-slate-400 hover:text-white transition-colors" onClick={() => window.location.reload()}>Exit</button>
+            <button type="button" className="text-sm font-bold text-slate-400 hover:text-white transition-colors" onClick={() => {
+              if (results) {
+                setResults(null);
+              } else {
+                navigate('/');
+              }
+            }}>Exit</button>
           </div>
         </div>
       </nav>
@@ -184,10 +213,10 @@ export const PremiumDashboard: React.FC = () => {
             <div className="mb-8">
               <span className="text-xs font-semibold text-primary uppercase tracking-wider mb-3 block">Quick Presets:</span>
               <div className="flex flex-wrap gap-3">
-                <button type="button" className={`px-4 py-2 rounded-full text-sm font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-primary/20 hover:border-primary/50 hover:text-white transition-all`} onClick={() => { setRiskTolerance('Low'); setDuration('Long-term'); }}>💻 Digital Nomad</button>
-                <button type="button" className={`px-4 py-2 rounded-full text-sm font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-primary/20 hover:border-primary/50 hover:text-white transition-all`} onClick={() => { setRiskTolerance('Low'); setDuration('Long-term'); }}>🏡 Retiree</button>
-                <button type="button" className={`px-4 py-2 rounded-full text-sm font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-primary/20 hover:border-primary/50 hover:text-white transition-all`} onClick={() => { setRiskTolerance('High'); setDuration('Short-term'); }}>🌋 Adventurer</button>
-                <button type="button" className={`px-4 py-2 rounded-full text-sm font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-primary/20 hover:border-primary/50 hover:text-white transition-all`} onClick={() => { setRiskTolerance('Moderate'); setDuration('Short-term'); }}>💼 Business</button>
+                <button type="button" className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${activePreset === 'Nomad' ? 'border-primary bg-primary/20 text-white shadow-[0_0_15px_rgba(0,240,255,0.3)]' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-primary/20 hover:border-primary/50 hover:text-white'}`} onClick={() => { setActivePreset('Nomad'); setRiskTolerance('Low'); setDuration('Long-term'); }}>💻 Digital Nomad</button>
+                <button type="button" className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${activePreset === 'Retiree' ? 'border-primary bg-primary/20 text-white shadow-[0_0_15px_rgba(0,240,255,0.3)]' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-primary/20 hover:border-primary/50 hover:text-white'}`} onClick={() => { setActivePreset('Retiree'); setRiskTolerance('Low'); setDuration('Long-term'); }}>🏡 Retiree</button>
+                <button type="button" className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${activePreset === 'Adventurer' ? 'border-primary bg-primary/20 text-white shadow-[0_0_15px_rgba(0,240,255,0.3)]' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-primary/20 hover:border-primary/50 hover:text-white'}`} onClick={() => { setActivePreset('Adventurer'); setRiskTolerance('High'); setDuration('Short-term'); }}>🌋 Adventurer</button>
+                <button type="button" className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${activePreset === 'Business' ? 'border-primary bg-primary/20 text-white shadow-[0_0_15px_rgba(0,240,255,0.3)]' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-primary/20 hover:border-primary/50 hover:text-white'}`} onClick={() => { setActivePreset('Business'); setRiskTolerance('Moderate'); setDuration('Short-term'); }}>💼 Business</button>
               </div>
             </div>
 
@@ -203,9 +232,9 @@ export const PremiumDashboard: React.FC = () => {
                       </span>
                     ))}
                   </div>
-                  <input 
-                    type="text" 
-                    id="countryInput" 
+                  <input
+                    type="text"
+                    id="countryInput"
                     ref={inputRef}
                     value={inputValue}
                     onChange={(e) => {
@@ -214,15 +243,15 @@ export const PremiumDashboard: React.FC = () => {
                     }}
                     onFocus={() => setShowAutocomplete(inputValue.length >= 2)}
                     onKeyDown={handleKeyDown}
-                    placeholder={countries.length === 0 ? "Type a country and press Enter..." : ""} 
-                    className="flex-1 min-w-[180px] bg-transparent border-none outline-none text-white text-sm placeholder-slate-500 py-1" 
+                    placeholder={countries.length === 0 ? "Type a country and press Enter..." : ""}
+                    className="flex-1 min-w-[180px] bg-transparent border-none outline-none text-white text-sm placeholder-slate-500 py-1"
                   />
-                  
+
                   {showAutocomplete && filteredCountries.length > 0 && (
                     <div className="absolute top-[105%] left-0 w-full bg-surface-dark border border-white/10 rounded-xl overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 autocomplete-list" ref={autocompleteRef} style={{ display: 'block' }}>
                       {filteredCountries.map((c, idx) => (
-                        <div 
-                          className="px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-primary/15 transition-colors" 
+                        <div
+                          className="px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-primary/15 transition-colors"
                           key={idx}
                           onClick={() => handleAddCountry(c.name)}
                         >
@@ -243,7 +272,7 @@ export const PremiumDashboard: React.FC = () => {
                 <div>
                   <label htmlFor="riskTolerance" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Risk Tolerance</label>
                   <div className="relative">
-                    <select id="riskTolerance" value={riskTolerance} onChange={(e) => setRiskTolerance(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl text-white text-sm py-3 px-4 appearance-none focus:outline-none focus:border-primary/60 focus:shadow-[0_0_15px_rgba(0,240,255,0.15)] transition-all cursor-pointer">
+                    <select id="riskTolerance" value={riskTolerance} onChange={(e) => { setRiskTolerance(e.target.value); setActivePreset(null); }} className="w-full bg-black/40 border border-white/10 rounded-xl text-white text-sm py-3 px-4 appearance-none focus:outline-none focus:border-primary/60 focus:shadow-[0_0_15px_rgba(0,240,255,0.15)] transition-all cursor-pointer">
                       <option value="Low">🛡️ Low — Safety First</option>
                       <option value="Moderate">⚖️ Moderate — Balanced</option>
                       <option value="High">🚀 High — Adventurous</option>
@@ -256,7 +285,7 @@ export const PremiumDashboard: React.FC = () => {
                 <div>
                   <label htmlFor="duration" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Duration of Stay</label>
                   <div className="relative">
-                    <select id="duration" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl text-white text-sm py-3 px-4 appearance-none focus:outline-none focus:border-primary/60 focus:shadow-[0_0_15px_rgba(0,240,255,0.15)] transition-all cursor-pointer">
+                    <select id="duration" value={duration} onChange={(e) => { setDuration(e.target.value); setActivePreset(null); }} className="w-full bg-black/40 border border-white/10 rounded-xl text-white text-sm py-3 px-4 appearance-none focus:outline-none focus:border-primary/60 focus:shadow-[0_0_15px_rgba(0,240,255,0.15)] transition-all cursor-pointer">
                       <option value="Short-term">📅 Short-term</option>
                       <option value="Long-term">🏡 Long-term</option>
                     </select>
@@ -290,7 +319,7 @@ export const PremiumDashboard: React.FC = () => {
         {results && !isLoading && (
           <section className="results-section show" id="resultsSection">
             <div className="flex justify-center mb-12">
-              <button 
+              <button
                 onClick={() => setResults(null)}
                 className="group relative inline-flex items-center gap-2 px-6 py-3 bg-black/40 border border-white/20 text-slate-300 hover:text-white rounded-xl overflow-hidden transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_15px_rgba(0,240,255,0.2)]"
               >
@@ -298,7 +327,7 @@ export const PremiumDashboard: React.FC = () => {
                 <span className="text-sm font-semibold tracking-wide uppercase">Start New Analysis</span>
               </button>
             </div>
-            
+
             <PremiumResultsDisplay data={results} />
           </section>
         )}

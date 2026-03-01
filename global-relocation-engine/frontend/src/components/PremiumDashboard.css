@@ -1275,3 +1275,84 @@
     font-size: 1.1rem;
   }
 }
+
+/* --- Print Styles --- */
+@media print {
+
+  /* Hide interactive/background elements that ruin print */
+  nav,
+  .fixed.inset-0,
+  Spline,
+  .activity-log,
+  .btn-analyze,
+  .results-header button,
+  footer {
+    display: none !important;
+  }
+
+  /* Prevent scrolling/overflow clipping that stops multi-page printing */
+  html,
+  body,
+  #root,
+  .min-h-screen,
+  .bg-background-dark,
+  main,
+  #resultsSection,
+  .premium-dashboard {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  /* Ensure the dark theme remains */
+  body,
+  .bg-background-dark {
+    background-color: #050a10 !important;
+  }
+
+  /* Force cards to stay together */
+  .country-card,
+  .glass-card {
+    background: rgba(15, 22, 30, 0.9) !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 2rem !important;
+  }
+
+  /* Remove padding from main to use full page */
+  main.pt-32,
+  .pb-20,
+  .px-6 {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Prevent flex/grid clipping on cards */
+  .country-card,
+  .glass-card,
+  .card-body,
+  .scores-grid,
+  .grid,
+  .flex {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
+  /* Force elements that might be absolute to be static to prevent hiding */
+  .relative,
+  .absolute {
+    position: static !important;
+  }
+
+  /* Keep text colors from app */
+  .reasoning-box,
+  .cultural-box,
+  .news-box {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    overflow: visible !important;
+  }
+}

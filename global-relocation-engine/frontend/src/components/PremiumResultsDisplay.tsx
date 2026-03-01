@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { AnalysisResponse } from '../types';
+import html2pdf from 'html2pdf.js';
 
 interface PremiumResultsDisplayProps {
   data: AnalysisResponse;
@@ -23,16 +24,33 @@ const formatPopulation = (pop: number | undefined) => {
 
 export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ data: apiResponse }) => {
   const [logsOpen, setLogsOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   if (!apiResponse || !apiResponse.data || !apiResponse.data.rankings) {
     return <div className="text-center text-slate-400 mt-8">No analysis data available.</div>;
   }
 
-  const handleExportPDF = () => {
-    // Utilize native window printing for robust CSS rendering
-    setTimeout(() => {
-        window.print();
-    }, 100);
+  const handleExportPDF = async () => {
+    try {
+      setIsExporting(true);
+      const element = document.getElementById('resultsSection');
+      if (!element) return;
+
+      const opt = {
+        margin: 10,
+        filename: 'Aetheris_Relocation_Analysis.pdf',
+        image: { type: 'jpeg' as 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, backgroundColor: '#050a10', useCORS: true, logging: false },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('Failed to export PDF:', err);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const { data, failedCountries, performance, activityLog, exchangeRates } = apiResponse;
@@ -60,13 +78,13 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
         <circle cx={center} cy={center} r={radius} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
         <circle cx={center} cy={center} r={radius * 0.66} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
         <circle cx={center} cy={center} r={radius * 0.33} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-        
+
         <line x1={center} y1={center} x2={center} y2={center - radius} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
         <line x1={center} y1={center} x2={center + radius * Math.cos(Math.PI / 6)} y2={center + radius * Math.sin(Math.PI / 6)} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
         <line x1={center} y1={center} x2={center - radius * Math.cos(Math.PI / 6)} y2={center + radius * Math.sin(Math.PI / 6)} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
 
         <polygon points={polyPoints} fill="rgba(99, 102, 241, 0.4)" stroke="var(--accent-primary)" strokeWidth="2" />
-        
+
         <text x={center} y={center - radius - 5} textAnchor="middle" fontSize="8" fill="var(--text-muted)">SHIELDS</text>
         <text x={center + radius} y={center + radius / 2} textAnchor="start" fontSize="8" fill="var(--text-muted)">HEALTH</text>
         <text x={center - radius} y={center + radius / 2} textAnchor="end" fontSize="8" fill="var(--text-muted)">ENV</text>
@@ -88,12 +106,22 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
             <span className="meta-tag">⚡ {performance.responseTimeMs}ms</span>
           </div>
         </div>
-        
-        <button 
+
+        <button
           onClick={handleExportPDF}
-          className="bg-white/5 border border-white/20 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center gap-2 backdrop-blur-md transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] animate-fade-in"
+          disabled={isExporting}
+          className="bg-white/5 border border-white/20 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center gap-2 backdrop-blur-md transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] animate-fade-in disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <span>📄</span> Export PDF
+          {isExporting ? (
+            <>
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              Generating...
+            </>
+          ) : (
+            <>
+              <span>📄</span> Export PDF
+            </>
+          )}
         </button>
       </div>
 
@@ -122,29 +150,29 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
         <div className="weight-bars">
           <div className="weight-bar-group">
             <div className="weight-bar-label">
-               <span>Travel Risk</span>
-               <span>{Math.round(weights.travelRisk * 100)}%</span>
+              <span>Travel Risk</span>
+              <span>{Math.round(weights.travelRisk * 100)}%</span>
             </div>
             <div className="weight-bar">
-               <div className="weight-bar-fill" style={{ width: `${Math.round(weights.travelRisk * 100)}%`, background: '#ef4444' }}></div>
+              <div className="weight-bar-fill" style={{ width: `${Math.round(weights.travelRisk * 100)}%`, background: '#ef4444' }}></div>
             </div>
           </div>
           <div className="weight-bar-group">
             <div className="weight-bar-label">
-               <span>Health Infra</span>
-               <span>{Math.round(weights.healthInfra * 100)}%</span>
+              <span>Health Infra</span>
+              <span>{Math.round(weights.healthInfra * 100)}%</span>
             </div>
             <div className="weight-bar">
-               <div className="weight-bar-fill" style={{ width: `${Math.round(weights.healthInfra * 100)}%`, background: '#10b981' }}></div>
+              <div className="weight-bar-fill" style={{ width: `${Math.round(weights.healthInfra * 100)}%`, background: '#10b981' }}></div>
             </div>
           </div>
           <div className="weight-bar-group">
             <div className="weight-bar-label">
-               <span>Env Stability</span>
-               <span>{Math.round(weights.envStability * 100)}%</span>
+              <span>Env Stability</span>
+              <span>{Math.round(weights.envStability * 100)}%</span>
             </div>
             <div className="weight-bar">
-               <div className="weight-bar-fill" style={{ width: `${Math.round(weights.envStability * 100)}%`, background: '#3b82f6' }}></div>
+              <div className="weight-bar-fill" style={{ width: `${Math.round(weights.envStability * 100)}%`, background: '#3b82f6' }}></div>
             </div>
           </div>
         </div>
@@ -168,7 +196,7 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
                 const isHit = log.meta?.hit !== undefined ? log.meta.hit : true;
                 return (
                   <div key={i} className={`activity-event level-${log.level}`}>
-                    <span className="event-time">{new Date(log.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit'})}</span>
+                    <span className="event-time">{new Date(log.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
                     <span className="event-icon">{log.icon || (log.level === 'ERROR' ? '🚨' : log.level === 'WARN' ? '⚠️' : '🔹')}</span>
                     <span className={`event-category cat-${log.category}`}>{log.category}</span>
                     <span className="event-message">{log.message}</span>
@@ -187,7 +215,7 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
       <div id="report-content" className="cards-grid mt-6">
         {rankings.map((c) => {
           const rankClass = c.rank <= 3 ? `rank-${c.rank}` : 'rank-other';
-          
+
           const travelRiskColor = getScoreColor(100 - (c.scores.travelRisk.score || 0));
           const healthColor = getScoreColor(c.scores.healthInfra.score);
           const envColor = getScoreColor(c.scores.envStability.score);
@@ -205,10 +233,10 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
                   <span>🌍 {c.region}</span>
                   <span>👥 {formatPopulation(c.population)}</span>
                   {c.currencies && c.currencies.length > 0 && (
-                    <span>💰 {c.currencies[0].code} 
-                       {exchangeRates && exchangeRates.rates && exchangeRates.rates[c.currencies[0].code] && (
-                          <span className="financial-info inline-block ml-2">1 USD = {exchangeRates.rates[c.currencies[0].code].toFixed(2)} {c.currencies[0].code}</span>
-                       )}
+                    <span>💰 {c.currencies[0].code}
+                      {exchangeRates && exchangeRates.rates && exchangeRates.rates[c.currencies[0].code] && (
+                        <span className="financial-info inline-block ml-2">1 USD = {exchangeRates.rates[c.currencies[0].code].toFixed(2)} {c.currencies[0].code}</span>
+                      )}
                     </span>
                   )}
                 </div>
@@ -217,7 +245,7 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
                   <div className="composite-label">Overall Score</div>
                 </div>
               </div>
-              
+
               <div className="card-body">
                 <div className="scores-grid">
                   <div className="score-item">
@@ -267,32 +295,32 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
                 </div>
 
                 {c.culturalContext && c.culturalContext.extract && (
-                  <div className="cultural-box mt-4 p-4 rounded-xl bg-white/5 border border-white/10 print:bg-transparent print:border-gray-300 print:text-black">
-                    <div className="reasoning-label mb-2 flex items-center gap-2"><span className="text-primary print:hidden">🏛️</span> Cultural Context</div>
-                    <p className="text-sm text-slate-300 print:text-gray-800 italic">"{c.culturalContext.extract}"</p>
+                  <div className="cultural-box mt-4 p-4 rounded-xl bg-white/5 border border-white/10">
+                    <div className="reasoning-label mb-2 flex items-center gap-2"><span className="text-primary">🏛️</span> Cultural Context</div>
+                    <p className="text-sm text-slate-300 italic">"{c.culturalContext.extract}"</p>
                     {c.culturalContext.url && (
-                        <a href={c.culturalContext.url} target="_blank" rel="noreferrer" className="text-xs text-primary/70 hover:text-primary mt-2 inline-block print:hidden">Read more on Wikipedia →</a>
+                      <a href={c.culturalContext.url} target="_blank" rel="noreferrer" className="text-xs text-primary/70 hover:text-primary mt-2 inline-block">Read more on Wikipedia →</a>
                     )}
                   </div>
                 )}
 
                 {c.news && c.news.length > 0 && (
-                  <div className="news-box mt-4 p-4 rounded-xl bg-white/5 border border-white/10 print:bg-transparent print:border-gray-300">
+                  <div className="news-box mt-4 p-4 rounded-xl bg-white/5 border border-white/10">
                     <div className="reasoning-label mb-3 flex items-center gap-2">
-                        <span className="text-primary print:hidden">📰</span> Latest Local News
+                      <span className="text-primary">📰</span> Latest Local News
                     </div>
                     <ul className="space-y-3">
-                        {c.news.map((item, i) => (
-                            <li key={i} className="text-sm border-b border-white/10 print:border-gray-200 pb-2 last:border-0 last:pb-0">
-                                <a href={item.link} target="_blank" rel="noreferrer" className="text-blue-300 hover:text-blue-400 print:text-blue-800 font-medium block leading-tight mb-1">
-                                    {item.title}
-                                </a>
-                                <div className="flex justify-between items-center text-xs text-slate-400 print:text-gray-600">
-                                    <span>{item.source}</span>
-                                    <span>{new Date(item.pubDate).toLocaleDateString()}</span>
-                                </div>
-                            </li>
-                        ))}
+                      {c.news.map((item, i) => (
+                        <li key={i} className="text-sm border-b border-white/10 pb-2 last:border-0 last:pb-0">
+                          <a href={item.link} target="_blank" rel="noreferrer" className="text-blue-300 hover:text-blue-400 font-medium block leading-tight mb-1">
+                            {item.title}
+                          </a>
+                          <div className="flex justify-between items-center text-xs text-slate-400">
+                            <span>{item.source}</span>
+                            <span>{new Date(item.pubDate).toLocaleDateString()}</span>
+                          </div>
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 )}
@@ -314,7 +342,7 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
                     <span className="visual-label">Location</span>
                     <div className="map-container">
                       {c.latlng && c.latlng.length >= 2 && (
-                        <iframe 
+                        <iframe
                           className="map-iframe"
                           title="country map"
                           src={`https://www.openstreetmap.org/export/embed.html?bbox=${c.latlng[1] - 0.2}%2C${c.latlng[0] - 0.2}%2C${c.latlng[1] + 0.2}%2C${c.latlng[0] + 0.2}&layer=mapnik&marker=${c.latlng[0]}%2C${c.latlng[1]}`}
