@@ -39,8 +39,54 @@ Aetheris interconnects with several live global APIs to feed the intelligence al
 5. **Wikipedia Extracts API**: Pulls relevant cultural, historical, and demographic contexts.
 6. **NewsData.io API**: Retrieves recent localized news headlines.
 
-### **How the Data Interconnects:**
-When a user submits their preferences, the Frontend sends a single, unified JSON payload to the Express Backend. The Backend then spawns parallel async workers for *each* selected country, pinging all 6 APIs concurrently. Once the promises resolve, the Backend normalizes the disparate data formats into a strict `AnalysisResponse` interface and passes it to the scoring algorithm before sending it back to the client.
+### **Architecture Blueprint & Data Interconnection**
+
+```mermaid
+graph TD
+    %% Styling
+    classDef frontend fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:#fff
+    classDef backend fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff
+    classDef external fill:#f59e0b,stroke:#b45309,stroke-width:2px,color:#fff
+    classDef db fill:#8b5cf6,stroke:#5b21b6,stroke-width:2px,color:#fff
+
+    User((User)) -->|Input Preferences & Destinations| FE
+
+    subgraph "Aetheris Client (React + Vite)"
+        FE[Frontend Dashboard]:::frontend
+        UI[Glassmorphic UI & 3D Spline]:::frontend
+        PDF[PDF Export Engine]:::frontend
+        FE --- UI
+        FE --- PDF
+    end
+
+    FE -->|Unified JSON Payload| BE
+
+    subgraph "Aetheris Core Engine (Node.js + Express)"
+        BE[Express REST API]:::backend
+        Cache[(In-Memory Cache)]:::db
+        Async[Promise.allSettled Workers]:::backend
+        Score[Dynamic Scoring Algorithm]:::backend
+        
+        BE -->|Check 60m TTL| Cache
+        Cache -.->|Cache Miss| Async
+        Async --> Score
+    end
+
+    %% API Connections
+    Async -->|Fetch Coordinates & Currencies| APICountries[REST Countries API]:::external
+    Async -->|Fetch Live Weather| APIWeather[Open-Meteo API]:::external
+    Async -->|Poll Environmental Stability| APIWaqi[WAQI Air Quality API]:::external
+    Async -->|Live Currency Conversion| APIEx[ExchangeRate-API]:::external
+    Async -->|Fetch Context & History| APIWiki[Wikipedia Extracts API]:::external
+    Async -->|Scrape Localized News| APINews[NewsData.io API]:::external
+
+    %% Return Path
+    APICountries & APIWeather & APIWaqi & APIEx & APIWiki & APINews -->|Normalize Data| Async
+    Score -->|Ranked Intelligence Response| FE
+    FE -->|Render Radar Charts & Analysis| User
+```
+
+When a user submits their preferences, the Frontend sends a single, unified JSON payload to the Express Backend. The Backend then spawns parallel async workers for *each* selected country, pinging all 6 external APIs concurrently. Once the promises resolve, the Backend aggregates the disparate data formats into a strict `AnalysisResponse` interface and passes it to the scoring algorithm before sending the ranked findings back to the client.
 
 ---
 
