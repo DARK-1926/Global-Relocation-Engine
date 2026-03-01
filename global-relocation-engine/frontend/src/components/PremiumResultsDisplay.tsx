@@ -28,6 +28,13 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
     return <div className="text-center text-slate-400 mt-8">No analysis data available.</div>;
   }
 
+  const handleExportPDF = () => {
+    // Utilize native window printing for robust CSS rendering
+    setTimeout(() => {
+        window.print();
+    }, 100);
+  };
+
   const { data, failedCountries, performance, activityLog, exchangeRates } = apiResponse;
   const { rankings, weights, metadata } = data;
 
@@ -69,7 +76,7 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
 
   return (
     <div className="premium-results">
-      <div className="results-header">
+      <div className="results-header flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center gap-3">
             <span className="text-primary">🏆</span> Rankings
@@ -81,9 +88,36 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
             <span className="meta-tag">⚡ {performance.responseTimeMs}ms</span>
           </div>
         </div>
+        
+        <button 
+          onClick={handleExportPDF}
+          className="bg-white/5 border border-white/20 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center gap-2 backdrop-blur-md transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] animate-fade-in"
+        >
+          <span>📄</span> Export PDF
+        </button>
       </div>
 
       <div className="weight-profile glass-card">
+        <h3 className="section-title text-sm uppercase tracking-wide text-slate-400 mb-3 font-semibold mt-4">API Data Sources Audit & Fallbacks</h3>
+        <div className="flex flex-wrap gap-4 text-xs font-mono mb-6">
+          <div className="p-3 bg-white/5 border border-primary/20 rounded-lg shrink-0">
+            <div className="text-primary mb-1 relative before:content-[''] before:inline-block before:w-2 before:h-2 before:bg-green-500 before:rounded-full before:mr-2">REST Countries</div>
+            <div className="text-slate-400">Primary Geo Data</div>
+          </div>
+          <div className="p-3 bg-white/5 border border-primary/20 rounded-lg shrink-0">
+            <div className="text-primary mb-1 relative before:content-[''] before:inline-block before:w-2 before:h-2 before:bg-green-500 before:rounded-full before:mr-2">World Bank API</div>
+            <div className="text-slate-400">P: Healthcare/GDP | <span className="text-orange-300">F: Regional Proxies</span></div>
+          </div>
+          <div className="p-3 bg-white/5 border border-primary/20 rounded-lg shrink-0">
+            <div className="text-primary mb-1 relative before:content-[''] before:inline-block before:w-2 before:h-2 before:bg-green-500 before:rounded-full before:mr-2">Open-Meteo</div>
+            <div className="text-slate-400">P: Weather/AQI | <span className="text-yellow-300">F: .env OpenWeather / WAQI</span></div>
+          </div>
+          <div className="p-3 bg-white/5 border border-primary/20 rounded-lg shrink-0">
+            <div className="text-primary mb-1 relative before:content-[''] before:inline-block before:w-2 before:h-2 before:bg-green-500 before:rounded-full before:mr-2">Wikipedia / G-News</div>
+            <div className="text-slate-400">P: Context/Live Feeds | <span className="text-orange-300">F: Graceful Omit</span></div>
+          </div>
+        </div>
+
         <h3>Dynamic Weight Profile</h3>
         <div className="weight-bars">
           <div className="weight-bar-group">
@@ -150,7 +184,7 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
         </div>
       )}
 
-      <div className="cards-grid mt-6">
+      <div id="report-content" className="cards-grid mt-6">
         {rankings.map((c) => {
           const rankClass = c.rank <= 3 ? `rank-${c.rank}` : 'rank-other';
           
@@ -232,8 +266,39 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
                   <p>{c.reasoning.summary}</p>
                 </div>
 
+                {c.culturalContext && c.culturalContext.extract && (
+                  <div className="cultural-box mt-4 p-4 rounded-xl bg-white/5 border border-white/10 print:bg-transparent print:border-gray-300 print:text-black">
+                    <div className="reasoning-label mb-2 flex items-center gap-2"><span className="text-primary print:hidden">🏛️</span> Cultural Context</div>
+                    <p className="text-sm text-slate-300 print:text-gray-800 italic">"{c.culturalContext.extract}"</p>
+                    {c.culturalContext.url && (
+                        <a href={c.culturalContext.url} target="_blank" rel="noreferrer" className="text-xs text-primary/70 hover:text-primary mt-2 inline-block print:hidden">Read more on Wikipedia →</a>
+                    )}
+                  </div>
+                )}
+
+                {c.news && c.news.length > 0 && (
+                  <div className="news-box mt-4 p-4 rounded-xl bg-white/5 border border-white/10 print:bg-transparent print:border-gray-300">
+                    <div className="reasoning-label mb-3 flex items-center gap-2">
+                        <span className="text-primary print:hidden">📰</span> Latest Local News
+                    </div>
+                    <ul className="space-y-3">
+                        {c.news.map((item, i) => (
+                            <li key={i} className="text-sm border-b border-white/10 print:border-gray-200 pb-2 last:border-0 last:pb-0">
+                                <a href={item.link} target="_blank" rel="noreferrer" className="text-blue-300 hover:text-blue-400 print:text-blue-800 font-medium block leading-tight mb-1">
+                                    {item.title}
+                                </a>
+                                <div className="flex justify-between items-center text-xs text-slate-400 print:text-gray-600">
+                                    <span>{item.source}</span>
+                                    <span>{new Date(item.pubDate).toLocaleDateString()}</span>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
+
                 {c.hasPartialData && (
-                  <div className="partial-warning text-yellow-300">
+                  <div className="partial-warning text-yellow-300 mt-4">
                     ⚠️ Partial data: {c.errors.map((e: any) => e.api).join(', ')} unavailable. Scores may be affected.
                   </div>
                 )}
@@ -252,7 +317,7 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
                         <iframe 
                           className="map-iframe"
                           title="country map"
-                          src={`https://www.openstreetmap.org/export/embed.html?bbox=${c.latlng[1] - 1}%2C${c.latlng[0] - 1}%2C${c.latlng[1] + 1}%2C${c.latlng[0] + 1}&layer=mapnik&marker=${c.latlng[0]}%2C${c.latlng[1]}`}
+                          src={`https://www.openstreetmap.org/export/embed.html?bbox=${c.latlng[1] - 0.2}%2C${c.latlng[0] - 0.2}%2C${c.latlng[1] + 0.2}%2C${c.latlng[0] + 0.2}&layer=mapnik&marker=${c.latlng[0]}%2C${c.latlng[1]}`}
                           loading="lazy"
                         ></iframe>
                       )}

@@ -63,7 +63,10 @@ export async function fetchCountryData(countryName: string): Promise<CountryProf
         const data = await response.json();
         logger.apiCall('REST_Countries', durationMs, true, { country: countryName });
 
-        // Take the best match (first result)
+        // Sort data by population descending so exact string matches don't accidentally prioritize tiny islands
+        data.sort((a: any, b: any) => (b.population || 0) - (a.population || 0));
+
+        // Take the best match (first result, which is now the highest population)
         let country = data[0];
         
         // Exact match override to prevent minor islands from overtaking the main USA

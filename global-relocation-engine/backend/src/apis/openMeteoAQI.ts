@@ -64,6 +64,30 @@ export async function fetchAQIData(lat: number, lng: number, countryName: string
     } catch (error: any) {
         const durationMs = Date.now() - start;
         logger.apiCall('Open_Meteo_AQI', durationMs, false, { country: countryName, error: error.message });
+
+        // Fallback to WAQI if available
+        if (process.env.WAQI_TOKEN) {
+            try {
+                const waqiStart = Date.now();
+                const waqiUrl = `https://api.waqi.info/feed/geo:${lat};${lng}/?token=${process.env.WAQI_TOKEN}`;
+                const waqiRes = await fetch(waqiUrl);
+                const waqiData = await waqiRes.json();
+                
+                if (waqiRes.ok && waqiData.status === 'ok') {
+                    logger.apiCall('WAQI_Fallback', Date.now() - waqiStart, true, { country: countryName });
+                    const aqiValue = waqiData.data.aqi;
+                    return {
+                        usAQI: aqiValue,
+                        pm25: null, pm10: null, carbonMonoxide: null, nitrogenDioxide: null, sulphurDioxide: null, ozone: null,
+                        aqiCategory: getAQICategory(aqiValue),
+                        aqiColor: getAQIColor(aqiValue)
+                    };
+                }
+            } catch (fallbackError: any) {
+                logger.apiCall('WAQI_Fallback', 0, false, { error: fallbackError.message });
+            }
+        }
+
         throw error;
     }
 }

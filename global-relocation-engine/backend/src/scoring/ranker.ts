@@ -15,6 +15,9 @@ import logger from '../logger.js';
 import type { CountryProfile } from '../apis/restCountries.js';
 import type { WeatherData } from '../apis/openMeteoWeather.js';
 import type { AQIData } from '../apis/openMeteoAQI.js';
+import type { WorldBankHealthData } from '../apis/worldBank.js';
+import type { WikiContextData } from '../apis/wikipedia.js';
+import type { NewsItem } from '../apis/news.js';
 
 export interface Factor {
     type: 'positive' | 'negative' | 'neutral';
@@ -55,6 +58,8 @@ export interface RankedCountry {
         aqiCategory: string;
         aqiColor: string;
     };
+    culturalContext: WikiContextData | null;
+    news: NewsItem[];
     reasoning: Reasoning;
     cacheStatus: any;
     hasPartialData: boolean;
@@ -170,6 +175,9 @@ interface CountryEntry {
     country: CountryProfile;
     weather: WeatherData | null;
     aqi: AQIData | null;
+    wb: WorldBankHealthData | null;
+    wiki: WikiContextData | null;
+    news: NewsItem[];
     cacheStatus: any;
     errors: string[];
 }
@@ -181,11 +189,11 @@ export function rankCountries(countriesData: CountryEntry[], riskTolerance: stri
     const weights = getWeights(riskTolerance, duration);
 
     const scored = countriesData.map(entry => {
-        const { country, weather, aqi, cacheStatus, errors } = entry;
+        const { country, weather, aqi, wb, wiki, news, cacheStatus, errors } = entry;
 
         // Compute individual scores
         const travelRisk = computeTravelRisk(weather, aqi);
-        const healthInfra = computeHealthInfra(country);
+        const healthInfra = computeHealthInfra(country, wb);
         const envStability = computeEnvStability(weather, aqi);
 
         const scores = { travelRisk, healthInfra, envStability };
@@ -225,6 +233,9 @@ export function rankCountries(countriesData: CountryEntry[], riskTolerance: stri
             country: country || {},
             weather: weather || null,
             aqi: aqi || null,
+            wb: wb || null,
+            wiki: wiki || null,
+            news: news || [],
             scores,
             compositeScore,
             cacheStatus: cacheStatus || {},
@@ -279,6 +290,8 @@ export function rankCountries(countriesData: CountryEntry[], riskTolerance: stri
                 aqiCategory: entry.aqi?.aqiCategory ?? 'Unknown',
                 aqiColor: entry.aqi?.aqiColor ?? '#888'
             },
+            culturalContext: entry.wiki || null,
+            news: entry.news,
             reasoning,
             cacheStatus: entry.cacheStatus,
             hasPartialData: entry.hasPartialData || false,

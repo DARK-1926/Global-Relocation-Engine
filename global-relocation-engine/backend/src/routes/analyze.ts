@@ -7,6 +7,9 @@ import { fetchCountryData } from '../apis/restCountries.js';
 import { fetchWeatherData } from '../apis/openMeteoWeather.js';
 import { fetchAQIData } from '../apis/openMeteoAQI.js';
 import { fetchExchangeRates } from '../apis/exchangeRates.js';
+import { fetchHealthData } from '../apis/worldBank.js';
+import { fetchWikiContext } from '../apis/wikipedia.js';
+import { fetchNews } from '../apis/news.js';
 import { rankCountries } from '../scoring/ranker.js';
 import cache from '../cache.js';
 import logger from '../logger.js';
@@ -55,7 +58,7 @@ function validateInput(body: any): string[] {
 async function fetchCountryAllData(countryName: string) {
     const cacheKey = countryName.toLowerCase().trim();
     const errors: any[] = [];
-    const cacheStatus = { country: 'miss', weather: 'miss', aqi: 'miss' };
+    const cacheStatus = { country: 'miss', weather: 'miss', aqi: 'miss', wb: 'miss', wiki: 'miss', news: 'miss' };
 
     // Fetch country profile (with cache)
     let countryData = null;
@@ -75,10 +78,13 @@ async function fetchCountryAllData(countryName: string) {
 
     const [lat, lng] = countryData.latlng;
 
-    // Fetch weather and AQI concurrently (with cache)
-    const [weatherResult, aqiResult] = await Promise.allSettled([
+    // Fetch weather, AQI, World Bank, Wikipedia, and News concurrently (with cache)
+    const [weatherResult, aqiResult, wbResult, wikiResult, newsResult] = await Promise.allSettled([
         cache.getOrFetch(`weather:${cacheKey}`, () => fetchWeatherData(lat, lng, countryName)),
-        cache.getOrFetch(`aqi:${cacheKey}`, () => fetchAQIData(lat, lng, countryName))
+        cache.getOrFetch(`aqi:${cacheKey}`, () => fetchAQIData(lat, lng, countryName)),
+        cache.getOrFetch(`wb:${cacheKey}`, () => fetchHealthData(countryData.cca3)),
+        cache.getOrFetch(`wiki:${cacheKey}`, () => fetchWikiContext(countryName)),
+        cache.getOrFetch(`news:${cacheKey}`, () => fetchNews(countryName))
     ]);
 
     let weatherData = null;
@@ -99,7 +105,34 @@ async function fetchCountryAllData(countryName: string) {
         logger.partialFailure(countryName, ['Open-Meteo AQI']);
     }
 
-    return { country: countryData, weather: weatherData, aqi: aqiData, cacheStatus, errors };
+    let wbData = null;
+    if (wbResult.status === 'fulfilled') {
+        wbData = wbResult.value.data;
+        cacheStatus.wb = wbResult.value.cacheStatus;
+    } else {
+        errors.push({ api: 'World Bank Health', error: wbResult.reason?.message || 'Unknown error' });
+        logger.partialFailure(countryName, ['World Bank Health']);
+    }
+
+    let wikiData = null;
+    if (wikiResult.status === 'fulfilled') {
+        wikiData = wikiResult.value.data;
+        cacheStatus.wiki = wikiResult.value.cacheStatus;
+    } else {
+        errors.push({ api: 'Wikipedia Context', error: wikiResult.reason?.message || 'Unknown error' });
+        logger.partialFailure(countryName, ['Wikipedia Context']);
+    }
+
+    let newsData: any[] = [];
+    if (newsResult.status === 'fulfilled') {
+        newsData = newsResult.value.data;
+        cacheStatus.news = newsResult.value.cacheStatus;
+    } else {
+        errors.push({ api: 'News API', error: newsResult.reason?.message || 'Unknown error' });
+        logger.partialFailure(countryName, ['News API']);
+    }
+
+    return { country: countryData, weather: weatherData, aqi: aqiData, wb: wbData, wiki: wikiData, news: newsData, cacheStatus, errors };
 }
 
 /**

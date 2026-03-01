@@ -5,10 +5,12 @@
 
 import {
     normalizeLifeExpectancy,
-    normalizePopulation
+    normalizePopulation,
+    normalizeHealthcareExp
 } from './normalize.js';
 
 import type { CountryProfile } from '../apis/restCountries.js';
+import type { WorldBankHealthData } from '../apis/worldBank.js';
 
 /**
  * Estimate life expectancy based on region and development indicators.
@@ -62,6 +64,7 @@ export interface HealthInfraBreakdown {
     populationPressure: number | null;
     healthcareProxy: number | null;
     estimatedLifeExpectancy: number | null;
+    healthcareExpScore: number | null;
 }
 
 export interface HealthInfraResult {
@@ -73,12 +76,13 @@ export interface HealthInfraResult {
 /**
  * Compute Health Infrastructure Score for a country.
  */
-export function computeHealthInfra(countryData: CountryProfile | null): HealthInfraResult {
+export function computeHealthInfra(countryData: CountryProfile | null, wbData: WorldBankHealthData | null = null): HealthInfraResult {
     const breakdown: HealthInfraBreakdown = {
         lifeExpectancyScore: null,
         populationPressure: null,
         healthcareProxy: null,
-        estimatedLifeExpectancy: null
+        estimatedLifeExpectancy: null,
+        healthcareExpScore: null
     };
 
     if (!countryData) return { score: null, breakdown, factorsUsed: 0 };
@@ -87,10 +91,11 @@ export function computeHealthInfra(countryData: CountryProfile | null): HealthIn
     const region = countryData.region || '';
     let factorsUsed = 0;
 
-    // Life expectancy estimate
-    const lifeExp = REGION_LIFE_EXPECTANCY[subregion]
-        || REGION_LIFE_EXPECTANCY[region]
-        || REGION_LIFE_EXPECTANCY['default'] || 70;
+    // Life expectancy estimate (from WB if available, fallback to region proxy)
+    const lifeExp = wbData?.lifeExpectancy !== null && wbData?.lifeExpectancy !== undefined
+        ? wbData.lifeExpectancy 
+        : (REGION_LIFE_EXPECTANCY[subregion] || REGION_LIFE_EXPECTANCY[region] || REGION_LIFE_EXPECTANCY['default'] || 70);
+        
     breakdown.estimatedLifeExpectancy = lifeExp;
     breakdown.lifeExpectancyScore = normalizeLifeExpectancy(lifeExp);
     factorsUsed++;
@@ -103,6 +108,12 @@ export function computeHealthInfra(countryData: CountryProfile | null): HealthIn
         factorsUsed++;
     }
 
+    // Healthcare Expenditure % GDP (from WB)
+    if (wbData?.healthcareExpenditure !== null && wbData?.healthcareExpenditure !== undefined) {
+        breakdown.healthcareExpScore = normalizeHealthcareExp(wbData.healthcareExpenditure);
+        factorsUsed++;
+    }
+
     // Healthcare quality proxy based on region
     const healthProxy = REGION_HEALTHCARE_PROXY[subregion]
         || REGION_HEALTHCARE_PROXY[region]
@@ -112,8 +123,9 @@ export function computeHealthInfra(countryData: CountryProfile | null): HealthIn
 
     // Weighted aggregation
     const lifeExpWeight = 0.40;
-    const popPressureWeight = 0.15;
-    const healthProxyWeight = 0.45;
+    const popPressureWeight = 0.10;
+    const healthcareExpWeight = 0.20;
+    const healthProxyWeight = 0.30; // Reduced to account for real WB data
 
     let score = 0;
     let totalWeight = 0;
@@ -125,6 +137,10 @@ export function computeHealthInfra(countryData: CountryProfile | null): HealthIn
     if (breakdown.populationPressure !== null) {
         score += breakdown.populationPressure * popPressureWeight;
         totalWeight += popPressureWeight;
+    }
+    if (breakdown.healthcareExpScore !== null) {
+        score += breakdown.healthcareExpScore * healthcareExpWeight;
+        totalWeight += healthcareExpWeight;
     }
     if (breakdown.healthcareProxy !== null) {
         score += breakdown.healthcareProxy * healthProxyWeight;

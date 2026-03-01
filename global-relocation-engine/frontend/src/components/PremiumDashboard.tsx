@@ -94,10 +94,21 @@ export const PremiumDashboard: React.FC = () => {
     const val = name.trim().replace(/,/g, '');
     const isDuplicate = countries.some(c => c.toLowerCase() === val.toLowerCase());
     
-    if (val && !isDuplicate && countries.length < 5) {
+    if (isDuplicate) {
+      setError(`"${val}" has already been added.`);
+      setInputValue('');
+      setShowAutocomplete(false);
+      return;
+    }
+
+    if (val && countries.length < 5) {
       setCountries([...countries, val]);
       setInputValue('');
       setShowAutocomplete(false);
+      setError(null);
+    } else if (countries.length >= 5) {
+      setError("Maximum of 5 countries can be compared at once.");
+      setInputValue('');
     }
   };
 

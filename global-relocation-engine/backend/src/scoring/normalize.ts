@@ -11,14 +11,21 @@ export function clamp(val: number, min: number, max: number): number {
 }
 
 /**
- * Min-max normalize a value to 0-100 scale.
+ * Min-Max Normalization to 0-100 scale
+ * Formula: ((value - min) / (max - min)) * 100
+ *
+ * Ranges used:
+ * - Temperature: -50°C to 50°C
+ * - AQI: 0 to 500 (inverted: lower is better)
+ * - Life Expectancy: 50 to 85 years
+ * - Healthcare Exp: 0% to 20% of GDP
  */
 export function minMaxNormalize(value: number | null | undefined, min: number, max: number, invert: boolean = false): number | null {
     if (value === null || value === undefined || isNaN(value)) return null;
-    const clamped = clamp(value, min, max);
-    const normalized = ((clamped - min) / (max - min)) * 100;
-    const finalScore = invert ? 100 - normalized : normalized;
-    return Math.round(finalScore * 100) / 100;
+    let normalized = ((value - min) / (max - min)) * 100;
+    if (invert) normalized = 100 - normalized;
+    const clamped = Math.max(0, Math.min(100, normalized)); // Clamp to [0, 100]
+    return Math.round(clamped * 100) / 100;
 }
 
 /**
@@ -53,11 +60,19 @@ export function normalizePM25(pm25: number | null | undefined): number | null {
 }
 
 /**
- * Normalize life expectancy (global range ~50-85).
+ * Normalize life expectancy (global range 50 to 85 years).
  * Returns 0-100 where 100 = highest life expectancy.
  */
 export function normalizeLifeExpectancy(lifeExp: number | null | undefined): number | null {
     return minMaxNormalize(lifeExp, 50, 85, false);
+}
+
+/**
+ * Normalize Healthcare Expenditure (0% to 20% of GDP).
+ * Returns 0-100 where 100 = highest expenditure.
+ */
+export function normalizeHealthcareExp(exp: number | null | undefined): number | null {
+    return minMaxNormalize(exp, 0, 20, false);
 }
 
 /**

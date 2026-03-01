@@ -41,6 +41,16 @@ export interface RankedCountry {
   cacheStatus: any;
   hasPartialData: boolean;
   errors: any[];
+  culturalContext?: {
+    extract: string | null;
+    url: string | null;
+  };
+  news?: {
+    title: string;
+    link: string;
+    pubDate: string;
+    source: string;
+  }[];
 }
 
 export interface AnalysisResponse {

@@ -80,6 +80,37 @@ export async function fetchWeatherData(lat: number, lng: number, countryName: st
     } catch (error: any) {
         const durationMs = Date.now() - start;
         logger.apiCall('Open_Meteo_Weather', durationMs, false, { country: countryName, error: error.message });
+
+        // Fallback to OpenWeatherMap config if available
+        if (process.env.OPENWEATHER_API_KEY) {
+            try {
+                const owStart = Date.now();
+                const owUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${process.env.OPENWEATHER_API_KEY}&units=metric`;
+                const owRes = await fetch(owUrl);
+                const owData = await owRes.json();
+
+                if (owRes.ok) {
+                    logger.apiCall('OpenWeather_Fallback', Date.now() - owStart, true, { country: countryName });
+                    return {
+                        temperature: owData.main?.temp ?? null,
+                        apparentTemperature: owData.main?.feels_like ?? null,
+                        humidity: owData.main?.humidity ?? null,
+                        weatherCode: null,
+                        windSpeed: owData.wind?.speed ? owData.wind.speed * 3.6 : null, // Convert m/s to km/h
+                        windGusts: null,
+                        pressure: owData.main?.pressure ?? null,
+                        temperatureRange: 0,
+                        dailyMaxTemps: [],
+                        dailyMinTemps: [],
+                        dailyWeatherCodes: [],
+                        weatherDescription: owData.weather?.[0]?.description ?? 'Unknown'
+                    };
+                }
+            } catch (fallbackError: any) {
+                logger.apiCall('OpenWeather_Fallback', 0, false, { error: fallbackError.message });
+            }
+        }
+
         throw error;
     }
 }

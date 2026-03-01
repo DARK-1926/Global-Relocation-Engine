@@ -15,7 +15,16 @@ export interface ScoringWeights {
 }
 
 /**
- * Get dynamic weights based on user constraints.
+ * Dynamic Penalty Weights
+ *
+ * Risk Tolerance Impact:
+ * - Low: AQI penalty = 0.4, Advisory = 0.4, Temp = 0.2
+ * - Moderate: AQI penalty = 0.3, Advisory = 0.3, Temp = 0.4
+ * - High: AQI penalty = 0.2, Advisory = 0.2, Temp = 0.6
+ *
+ * Duration Impact:
+ * - Short-term: Environment = 0.5, Health = 0.2, Risk = 0.3
+ * - Long-term: Health = 0.5, Environment = 0.3, Risk = 0.2
  */
 export function getWeights(riskTolerance: string | undefined, duration: string | undefined): ScoringWeights {
     const risk = (riskTolerance || 'moderate').toLowerCase() as RiskTolerance;
