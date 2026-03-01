@@ -1196,6 +1196,64 @@
   color: #10b981;
 }
 
+/* --- Comparison Strip --- */
+.comparison-strip-container {
+  margin-bottom: 24px;
+  animation: slide-up 0.6s ease-out;
+}
+
+.comparison-header {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.comparison-grid table {
+  border-spacing: 0;
+}
+
+.comparison-grid th {
+  letter-spacing: 0.1em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.comparison-grid tr:last-child {
+  border-bottom: none;
+}
+
+.comparison-grid td {
+  font-size: 0.85rem;
+  vertical-align: middle;
+}
+
+.comparison-grid tr:hover td {
+  color: #fff;
+}
+
+.card-country-flag {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.card-country-name img {
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+  transition: transform 0.3s ease;
+}
+
+.country-card:hover .card-country-name img {
+  transform: scale(1.1) rotate(-2deg);
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Partial Data Warning */
 .partial-warning {
   margin-top: 12px;

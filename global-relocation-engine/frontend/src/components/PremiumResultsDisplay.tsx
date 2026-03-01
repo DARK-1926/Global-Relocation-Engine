@@ -75,19 +75,29 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
 
     return (
       <svg viewBox={`0 0 ${size} ${size}`} className="radar-svg">
-        <circle cx={center} cy={center} r={radius} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-        <circle cx={center} cy={center} r={radius * 0.66} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-        <circle cx={center} cy={center} r={radius * 0.33} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+        <defs>
+          <radialGradient id={`radarGradient-${c.cca3}`} cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+            <stop offset="0%" stopColor="var(--accent-primary)" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="var(--accent-primary)" stopOpacity="0.1" />
+          </radialGradient>
+        </defs>
+        <circle cx={center} cy={center} r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+        <circle cx={center} cy={center} r={radius * 0.66} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+        <circle cx={center} cy={center} r={radius * 0.33} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
 
-        <line x1={center} y1={center} x2={center} y2={center - radius} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-        <line x1={center} y1={center} x2={center + radius * Math.cos(Math.PI / 6)} y2={center + radius * Math.sin(Math.PI / 6)} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-        <line x1={center} y1={center} x2={center - radius * Math.cos(Math.PI / 6)} y2={center + radius * Math.sin(Math.PI / 6)} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+        <line x1={center} y1={center} x2={center} y2={center - radius} stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="2,2" />
+        <line x1={center} y1={center} x2={center + radius * Math.cos(Math.PI / 6)} y2={center + radius * Math.sin(Math.PI / 6)} stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="2,2" />
+        <line x1={center} y1={center} x2={center - radius * Math.cos(Math.PI / 6)} y2={center + radius * Math.sin(Math.PI / 6)} stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="2,2" />
 
-        <polygon points={polyPoints} fill="rgba(99, 102, 241, 0.4)" stroke="var(--accent-primary)" strokeWidth="2" />
+        <polygon points={polyPoints} fill={`url(#radarGradient-${c.cca3})`} stroke="var(--accent-primary)" strokeWidth="2.5" />
 
-        <text x={center} y={center - radius - 5} textAnchor="middle" fontSize="8" fill="var(--text-muted)">SHIELDS</text>
-        <text x={center + radius} y={center + radius / 2} textAnchor="start" fontSize="8" fill="var(--text-muted)">HEALTH</text>
-        <text x={center - radius} y={center + radius / 2} textAnchor="end" fontSize="8" fill="var(--text-muted)">ENV</text>
+        {points.map((p, i) => (
+          <circle key={i} cx={p.x} cy={p.y} r="3" fill="var(--accent-primary)" filter="drop-shadow(0 0 2px rgba(99,102,241,0.5))" />
+        ))}
+
+        <text x={center} y={center - radius - 8} textAnchor="middle" fontSize="9" fontWeight="bold" fill="var(--text-muted)">RISK</text>
+        <text x={center + radius + 5} y={center + radius / 2 + 5} textAnchor="start" fontSize="9" fontWeight="bold" fill="var(--text-muted)">HEALTH</text>
+        <text x={center - radius - 5} y={center + radius / 2 + 5} textAnchor="end" fontSize="9" fontWeight="bold" fill="var(--text-muted)">ENV</text>
       </svg>
     );
   };
@@ -150,7 +160,7 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
         <div className="weight-bars">
           <div className="weight-bar-group">
             <div className="weight-bar-label">
-              <span>Travel Risk</span>
+              <span>Risk Tolerance Suitability</span>
               <span>{Math.round(weights.travelRisk * 100)}%</span>
             </div>
             <div className="weight-bar">
@@ -159,7 +169,7 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
           </div>
           <div className="weight-bar-group">
             <div className="weight-bar-label">
-              <span>Health Infra</span>
+              <span>Health Infrastructure Impact</span>
               <span>{Math.round(weights.healthInfra * 100)}%</span>
             </div>
             <div className="weight-bar">
@@ -168,13 +178,71 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
           </div>
           <div className="weight-bar-group">
             <div className="weight-bar-label">
-              <span>Env Stability</span>
+              <span>Environmental Stability Focus</span>
               <span>{Math.round(weights.envStability * 100)}%</span>
             </div>
             <div className="weight-bar">
               <div className="weight-bar-fill" style={{ width: `${Math.round(weights.envStability * 100)}%`, background: '#3b82f6' }}></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="comparison-strip-container glass-card mt-8 overflow-hidden">
+        <div className="comparison-header p-4 border-b border-white/10 flex justify-between items-center">
+          <h3 className="section-title text-sm uppercase tracking-wide text-slate-300 font-bold flex items-center gap-2">
+            <span className="text-primary">⚔️</span> Top Choice Comparison
+          </h3>
+          <span className="text-xs text-slate-500 font-mono">Parallel Analysis Matrix</span>
+        </div>
+        <div className="comparison-grid p-0">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-white/3">
+                <th className="p-4 text-xs text-slate-400 font-medium">RANK</th>
+                <th className="p-4 text-xs text-slate-400 font-medium">DESTINATION</th>
+                <th className="p-4 text-xs text-slate-400 font-medium">SCORE</th>
+                <th className="p-4 text-xs text-slate-400 font-medium">SECURITY</th>
+                <th className="p-4 text-xs text-slate-400 font-medium">HEALTH</th>
+                <th className="p-4 text-xs text-slate-400 font-medium">CLIMATE</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rankings.slice(0, 3).map((c) => (
+                <tr key={c.cca3} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                  <td className="p-4">
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${c.rank === 1 ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'bg-slate-500/20 text-slate-500 border border-slate-500/20'}`}>
+                      {c.rank}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <img src={c.flag} alt="" className="w-8 h-5 object-cover rounded shadow-sm border border-white/10" />
+                      <span className="font-semibold text-slate-200">{c.countryName}</span>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <span className="text-primary font-bold">{c.compositeScore?.toFixed(1)}</span>
+                  </td>
+                  <td className="p-4">
+                    <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${100 - (c.scores.travelRisk.score || 0)}%`, background: getScoreColor(100 - (c.scores.travelRisk.score || 0)) }}></div>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${c.scores.healthInfra.score || 0}%`, background: getScoreColor(c.scores.healthInfra.score) }}></div>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${c.scores.envStability.score || 0}%`, background: getScoreColor(c.scores.envStability.score) }}></div>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -225,7 +293,7 @@ export const PremiumResultsDisplay: React.FC<PremiumResultsDisplayProps> = ({ da
               <div className="card-header">
                 <div className={`card-rank-badge ${rankClass}`}>#{c.rank}</div>
                 <div className="card-country-name">
-                  <span className="card-country-flag">{c.flagEmoji || '🏳️'}</span>
+                  <img src={c.flag} alt="" className="w-10 h-7 object-cover rounded-md shadow-lg border border-white/20 mr-2 inline-block" />
                   {c.countryName}
                 </div>
                 <div className="card-country-details font-mono">
