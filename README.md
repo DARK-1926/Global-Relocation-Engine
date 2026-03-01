@@ -8,7 +8,23 @@ Aetheris solves the complexity of international relocation by providing an autom
 
 ---
 
-## 🛠️ Tech Stack & Framework Architecture
+## � Visual Overview
+
+### 🌌 Immersive Landing Page
+![Landing Page](docs/screenshots/landing_page.png)
+
+### 📊 Intelligence Input Dashboard
+![Dashboard](docs/screenshots/dashboard_input.png)
+
+### ⚔️ Comparative Analytics Matrix
+![Comparison Matrix](docs/screenshots/comparison_matrix.png)
+
+### 🧠 Deep-Dive Intelligence Report
+![Intelligence Report](docs/screenshots/intelligence_report.png)
+
+---
+
+## �🛠️ Tech Stack & Framework Architecture
 
 This project is built using a modern **MERN-style** separated architecture, optimizing for speed, component reusability, and clean API separation.
 
