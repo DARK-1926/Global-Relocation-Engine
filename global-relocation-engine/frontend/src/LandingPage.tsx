@@ -52,22 +52,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartJourney }) => {
             <span className="material-symbols-outlined text-primary text-3xl animate-pulse">language</span>
             <span className="text-xl font-bold tracking-widest uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">Aetheris</span>
           </div>
-          <div className="hidden md:flex items-center gap-8">
-            <a className="text-sm font-medium text-slate-400 hover:text-primary transition-colors relative group" href="#">
-              Intelligence
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
-            </a>
-            <a className="text-sm font-medium text-slate-400 hover:text-primary transition-colors relative group" href="#">
-              Locations
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
-            </a>
-            <a className="text-sm font-medium text-slate-400 hover:text-primary transition-colors relative group" href="#">
-              Pricing
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
-            </a>
-          </div>
           <div className="flex items-center gap-6">
-            <a className="hidden md:block text-sm font-bold text-white hover:text-primary transition-colors" href="#">Log In</a>
             <button className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 hover:border-primary hover:shadow-[0_0_15px_rgba(0,240,255,0.4)] px-6 py-2 rounded-full text-sm font-bold transition-all duration-300">
               Get Access
             </button>
@@ -347,7 +332,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartJourney }) => {
               <a className="text-slate-400 hover:text-primary text-sm transition-colors hover:underline decoration-primary decoration-1 underline-offset-4" href="#">Contact</a>
             </div>
             <div className="text-slate-500 text-sm">
-              © 2023 Aetheris Intelligence.
+              © 2023 Aetheris.
             </div>
           </div>
         </div>
