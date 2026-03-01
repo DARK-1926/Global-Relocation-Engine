@@ -3,10 +3,7 @@ import './PremiumDashboard.css';
 import type { AnalysisResponse } from '../types';
 import { analyzeCountries } from '../services/api';
 import { PremiumResultsDisplay } from './PremiumResultsDisplay';
-
-// Create a React-friendly reference to the Web Component
-const SplineViewer = 'spline-viewer' as any;
-
+import Spline from '@splinetool/react-spline';
 
 export const PremiumDashboard: React.FC = () => {
   const [countries, setCountries] = useState<string[]>([]);
@@ -135,7 +132,7 @@ export const PremiumDashboard: React.FC = () => {
   return (
     <div className="bg-background-dark font-display text-slate-100 antialiased selection:bg-primary selection:text-background-dark overflow-x-hidden min-h-screen relative">
       <div className="fixed inset-0 z-0 bg-background-dark pointer-events-none">
-        <SplineViewer loading-anim-type="spinner-small-dark" url="https://prod.spline.design/jdz9ONn7NhYUhoMy/scene.splinecode"></SplineViewer>
+        <Spline scene="https://prod.spline.design/BukD8iIAWu7IzZBC/scene.splinecode" />
         <div className="absolute inset-0 bg-gradient-to-t from-background-dark via-transparent to-transparent z-10 pointer-events-none"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-background-dark/80 via-transparent to-background-dark/80 z-10 pointer-events-none"></div>
         <div className="absolute inset-0 bg-background-dark/40 z-10 pointer-events-none"></div>
