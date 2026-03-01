@@ -142,17 +142,6 @@ Ensure you have [Node.js](https://nodejs.org/) installed on your machine.
 
 ## ☁️ Deployment (Vercel)
 
-The frontend is fully configured for deployment on Vercel. Because Aetheris uses React Router (`BrowserRouter`) for dynamic NextUI interactions, standard static hosting will return a `404 Not Found` error if a user directly refreshes the page on any sub-route.
+The Aetheris Frontend is proudly hosted on **Vercel**, enabling lightning-fast global delivery. 
 
-To seamlessly handle Single Page Application (SPA) routing, this repository includes a `vercel.json` file in the `frontend` root:
-```json
-{
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
-}
-```
-This forces the Vercel edge network to redirect all traffic back to the React DOM, maintaining clean URLs without hash (`#`) routing.
+By leveraging Vercel's Edge Network, the application guarantees minimal latency and high availability for the static SPA (Single Page Application) bundle, ensuring a smooth, app-like experience for users worldwide regardless of their geographical location.
